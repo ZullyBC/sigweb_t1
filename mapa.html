@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+	<head>
+    <title>SIG en Web y Móvil</title>
+    <link rel="icon" type="image/x-icon" href="img/uv.png">
+	
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	
+	<link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.1/dist/leaflet.css" />
+	<link rel="stylesheet" type="text/css" href="https://rawgit.com/MarcChasse/leaflet.ScaleFactor/master/leaflet.scalefactor.min.css">
+	
+	<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" rel="stylesheet"/>
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.EasyButton/2.4.0/easy-button.css" />
+	<link rel="stylesheet" href="leaflet/posicion/dist/L.Control.Locate.mapbox.min.css" />
+	
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+    <link rel="stylesheet" href="leaflet/gp_layers/src/leaflet.groupedlayercontrol.css"/>
+
+	<style>
+	*{	
+		padding: 0% ;
+		margin: 0% 0%;		
+	}
+	html, body{
+	height:100% ;
+	width:100% vw;
+	}
+	
+	
+	#map{
+
+	width:100%;
+	height:100%;}
+
+	#norte{
+	position:fixed;
+	width:2%;
+	left: 3%;
+	padding: 1.2%;
+	}
+	#leyenda {
+        position: fixed;
+        left: 1%;
+        bottom: 15%;
+		height: 60%;
+    }
+	</style>
+	
+	
+	
+	</head>	
+	<body>
+
+
+			<div id="map" style="z-index:0">
+				<img id="norte" src="img/norte.png" style="z-index:9999" ></img>
+				<img id="leyenda" src="img/map_leyenda.png" style="z-index:9999"/>
+			</div>
+	</body>
+
+	<script src="https://npmcdn.com/jquery@3.0.0/dist/jquery.min.js"></script>
+	<script src="https://npmcdn.com/leaflet@1.0.0-rc.1/dist/leaflet.js"></script>
+	<script src="https://rawgit.com/MarcChasse/leaflet.ScaleFactor/master/leaflet.scalefactor.min.js"></script>
+	
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.EasyButton/2.4.0/easy-button.js"></script>
+	<script src="leaflet/posicion/src/L.Control.Locate.js" ></script>
+	<script src="https://kit.fontawesome.com/02eb88b373.js" crossorigin="anonymous"></script>
+	
+	<script src="leaflet/gp_layers/src/leaflet.groupedlayercontrol.js"></script>
+	
+	<link rel="stylesheet" href="leaflet/minimap/Control.MiniMap.css" />
+	<script src="leaflet/minimap/Control.MiniMap.js" type="text/javascript"></script>
+
+	<script>
+	
+	
+	
+	var map = L.map('map',
+	{
+		zoom: 10
+	}).setView([3.42335,-76.52086], 12);          
+	
+	
+	var basemaps = 
+	{
+		Atlas :  L.tileLayer('https://{s}.tile.thunderforest.com/mobile-atlas/{z}/{x}/{y}.png?apikey={apikey}', {
+				attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+				apikey: '6e692f4f2ee448d1bba70a30527db41d',
+				maxZoom: 22
+			}),
+
+		Pioneer :  L.tileLayer('https://{s}.tile.thunderforest.com/pioneer/{z}/{x}/{y}.png?apikey={apikey}', {
+				attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+				apikey: '6e692f4f2ee448d1bba70a30527db41d',
+				maxZoom: 22
+			}),
+			
+		Streets: L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			maxZoom: 19,
+			attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+		})
+	};
+    
+    
+    var basura = L.tileLayer.wms("http://ws-idesc.cali.gov.co:8081/geoserver/dagma/wms?", {
+	   layers: "dagma:obs_rso_puntos_criticos",
+	   format: 'image/png',
+	   transparent: true,
+	   version: '1.1.0',
+	   attribution: "IDESC"
+	});
+   
+    var islas_calor = L.tileLayer.wms("http://ws-idesc.cali.gov.co:8081/geoserver/dagma/wms?", {
+	   layers: "dagma:obs_cal_ts",
+	   format: 'image/png',
+	   transparent: true,
+	   version: '1.1.0',
+	   attribution: "IDESC"
+	});
+   
+    var groupedOverlays = {
+      "Capas": {
+        "Islas de calor": islas_calor,
+        "Puntos críticos de basura": basura,
+      }
+    };
+    
+	basemaps.Atlas.addTo(map);
+    islas_calor.addTo(map);
+    basura.addTo(map);
+	
+	
+	L.control.scale({position:'bottomleft'}).addTo(map)	;
+	L.control.groupedLayers(basemaps, groupedOverlays).addTo(map);
+
+	L.control.locate({setView:'false',flyto:'false',drawCircle:'false',showCompass:'true',drawMarker:'false',keepCurrentZoomLevel:'true',locateOptions: {
+               enableHighAccuracy: true}}).addTo(map);
+	
+	
+	var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+	var osmAttrib='Map data &copy; OpenStreetMap contributors';
+	
+	var osm2 = new L.TileLayer(osmUrl, {minZoom: 0, maxZoom: 8, attribution: osmAttrib });
+		var miniMap2 = new L.Control.MiniMap(osm2, { toggleDisplay: true }).addTo(map);
+
+
+	L.control.scalefactor().addTo(map);
+	</script>
+	
+</html> 
